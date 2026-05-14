@@ -1,0 +1,39 @@
+{
+  "name": "gas-project-template",
+  "version": "1.0.0",
+  "description": "Google Apps Script プロジェクトテンプレート（TypeScript + clasp + Jest）",
+  "scripts": {
+    "build": "node esbuild.config.js",
+    "push": "npm run build && clasp push",
+    "deploy": "npm run push && clasp deploy",
+    "watch": "node esbuild.config.js --watch",
+    "open": "clasp open",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "docker:build": "docker-compose build",
+    "docker:test": "docker-compose run --rm gas-test",
+    "docker:dev": "docker-compose up gas-dev",
+    "docker:shell": "docker-compose run --rm gas-shell"
+  },
+  "keywords": [
+    "google-apps-script",
+    "gas",
+    "clasp",
+    "typescript",
+    "jest",
+    "docker"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@google/clasp": "^2.4.2",
+    "@types/google-apps-script": "^1.0.83",
+    "@types/jest": "^29.5.0",
+    "esbuild": "^0.20.0",
+    "esbuild-gas-plugin": "^0.8.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.0",
+    "typescript": "^5.3.0"
+  }
+}

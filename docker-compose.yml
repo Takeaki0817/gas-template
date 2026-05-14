@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  # 開発環境（ファイル監視）
+  gas-dev:
+    build:
+      context: ./docker
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+      - clasp_cache:/home/appuser/.clasp
+    working_dir: /app
+    command: npm run watch
+    environment:
+      - NODE_ENV=development
+    stdin_open: true
+    tty: true
+
+  # テスト環境
+  gas-test:
+    build:
+      context: ./docker
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: npm test
+    environment:
+      - NODE_ENV=test
+
+  # インタラクティブシェル
+  gas-shell:
+    build:
+      context: ./docker
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+      - clasp_cache:/home/appuser/.clasp
+    working_dir: /app
+    command: sh
+    environment:
+      - NODE_ENV=development
+    stdin_open: true
+    tty: true
+
+volumes:
+  clasp_cache:

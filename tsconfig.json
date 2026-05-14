@@ -1,0 +1,38 @@
+{
+  "compilerOptions": {
+    // ターゲット環境（GASはES2019相当をサポート）
+    "target": "ES2019",
+    "module": "ESNext",
+    "lib": ["ES2019"],
+
+    // 型チェック
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+
+    // モジュール解決
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+
+    // 出力設定
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "skipLibCheck": true,
+
+    // その他
+    "forceConsistentCasingInFileNames": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": false
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}
