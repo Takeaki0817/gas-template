@@ -1,4 +1,5 @@
 import type { LogLevel } from '../types/global';
+import logger, { LogLevel as LoggerLevel } from './logger';
 
 /**
  * ユーティリティ関数集
@@ -8,14 +9,7 @@ import type { LogLevel } from '../types/global';
  * ログ出力ヘルパー
  */
 export function log(level: LogLevel, message: string, data?: unknown): void {
-  const timestamp = new Date().toISOString();
-  const logMessage = `[${timestamp}] [${level.toUpperCase()}] ${message}`;
-
-  if (data) {
-    Logger.log(`${logMessage}\n${JSON.stringify(data, null, 2)}`);
-  } else {
-    Logger.log(logMessage);
-  }
+  logger.log(toLoggerLevel(level), message, data);
 }
 
 /**
@@ -39,6 +33,10 @@ export function sleep(milliseconds: number): void {
  * 配列をチャンクに分割
  */
 export function chunk<T>(array: T[], size: number): T[][] {
+  if (size <= 0) {
+    throw new Error('Chunk size must be greater than 0');
+  }
+
   const chunks: T[][] = [];
   for (let i = 0; i < array.length; i += size) {
     chunks.push(array.slice(i, i + size));
@@ -47,7 +45,15 @@ export function chunk<T>(array: T[], size: number): T[][] {
 }
 
 /**
- * オブジェクトの深いコピー
+ * オブジェクトの深いコピー（JSON-safe な値のみ対応）
+ *
+ * 注意: 以下の値は失われる、または別形式に変換される:
+ * - `Date` → ISO 文字列に変換される
+ * - `Map` / `Set` → 空オブジェクト `{}` になる
+ * - `undefined` のプロパティ → 削除される
+ * - 関数 / `Symbol` / `BigInt` → 削除またはエラー
+ *
+ * これらを含む可能性がある値は、専用の clone 実装を別途用意すること。
  */
 export function deepCopy<T>(obj: T): T {
   return JSON.parse(JSON.stringify(obj));
@@ -63,4 +69,18 @@ export function generateRandomString(length: number): string {
     result += characters.charAt(Math.floor(Math.random() * characters.length));
   }
   return result;
+}
+
+function toLoggerLevel(level: LogLevel): LoggerLevel {
+  switch (level) {
+    case 'debug':
+      return LoggerLevel.DEBUG;
+    case 'warn':
+      return LoggerLevel.WARN;
+    case 'error':
+      return LoggerLevel.ERROR;
+    case 'info':
+    default:
+      return LoggerLevel.INFO;
+  }
 }

@@ -44,6 +44,12 @@ describe('Utils Module', () => {
       expect(result).toBe('2025-03-05');
     });
 
+    it('timezone-sensitive dates use the local test timezone', () => {
+      const date = new Date('2025-01-01T00:30:00+09:00');
+      const result = formatDate(date);
+      expect(result).toBe('2025-01-01');
+    });
+
     it('年末年始の日付も正しくフォーマットする', () => {
       const date = new Date('2024-12-31T23:59:59');
       const result = formatDate(date);
@@ -81,6 +87,12 @@ describe('Utils Module', () => {
       expect(result).toEqual([]);
     });
 
+    it('size=1の場合、各要素が個別のチャンクになる', () => {
+      const array = [1, 2, 3];
+      const result = chunk(array, 1);
+      expect(result).toEqual([[1], [2], [3]]);
+    });
+
     it('チャンクサイズが配列長より大きい場合、全体が1つのチャンクになる', () => {
       const array = [1, 2, 3];
       const result = chunk(array, 5);
@@ -104,6 +116,16 @@ describe('Utils Module', () => {
 
       expect(copied).toEqual(original);
       expect(copied).not.toBe(original);
+    });
+
+    it('nested array mutations do not affect the original object', () => {
+      const original = { items: [{ value: 1 }] };
+      const copied = deepCopy(original);
+
+      copied.items[0].value = 99;
+
+      expect(original.items[0].value).toBe(1);
+      expect(copied.items[0].value).toBe(99);
     });
 
     it('コピー後の変更が元のオブジェクトに影響しない', () => {
@@ -138,6 +160,21 @@ describe('Utils Module', () => {
     it('長さ0の場合、空文字列を返す', () => {
       const result = generateRandomString(0);
       expect(result).toBe('');
+    });
+  });
+
+  describe('log (additional levels)', () => {
+    it('debug レベルのログを出力できる', () => {
+      expect(() => {
+        log('debug', 'Test debug message');
+      }).not.toThrow();
+    });
+  });
+
+  describe('chunk (error case)', () => {
+    it('size が 0 以下の場合、エラーをスローする', () => {
+      expect(() => chunk([1, 2, 3], 0)).toThrow('Chunk size must be greater than 0');
+      expect(() => chunk([1, 2, 3], -1)).toThrow('Chunk size must be greater than 0');
     });
   });
 });

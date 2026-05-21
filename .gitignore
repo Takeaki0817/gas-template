@@ -5,7 +5,6 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-package-lock.json
 yarn.lock
 pnpm-lock.yaml
 
@@ -25,7 +24,7 @@ coverage/
 .nyc_output/
 
 # ========================================
-# clasp関連
+# clasp関連（認証情報・プロジェクト固有）
 # ========================================
 .clasp.json
 .claspignore
@@ -43,17 +42,18 @@ credentials.json
 token.json
 
 # ========================================
-# AI開発支援ツール関連
+# AI開発支援ツール
 # ========================================
-# Claude Code設定（プロジェクト固有のため除外）
-.claude/
-CLAUDE.md
+# Claude Code のローカル個人設定（パーミッション等）は除外
+.claude/settings.local.json
 
-# Serena（プロジェクト固有のキャッシュ）
+# 外部スキル（skills-lock.json から `npx skills experimental_install` で復元）
+.claude/skills/typescript-best-practices
+.claude/skills/javascript-typescript-jest
+.agents/
+
+# Serena プロジェクトキャッシュ
 .serena/
-
-# Kiro仕様書（プロジェクト固有）
-.kiro/
 
 # ========================================
 # IDE・エディタ設定

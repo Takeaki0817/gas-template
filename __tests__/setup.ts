@@ -4,7 +4,7 @@
  */
 
 // GAS APIモックをグローバルに読み込む
-import './mocks/gas-mocks';
+import { resetGasMocks } from './mocks/gas-mocks';
 
 // テストのタイムゾーンを設定（GASと合わせる）
 process.env.TZ = 'Asia/Tokyo';
@@ -21,3 +21,7 @@ if (process.env.NODE_ENV === 'test') {
     error: console.error,
   };
 }
+
+beforeEach(() => {
+  resetGasMocks();
+});

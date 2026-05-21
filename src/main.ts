@@ -7,6 +7,8 @@
 
 import { config } from './config/settings';
 import { log, formatDate } from './lib/utils';
+import { handleDoGet, handleDoPost } from './handlers/http';
+import { handleScheduledFunction } from './handlers/scheduled';
 
 /**
  * スクリプトの初期化関数
@@ -45,7 +47,7 @@ function myFunction(): void {
     sheet.getRange('A1').setValue(message);
     SpreadsheetApp.getUi().alert(message);
   } catch (error) {
-    Logger.log(message);
+    log('info', message);
   }
 }
 
@@ -85,7 +87,7 @@ function showVersion(): void {
   try {
     SpreadsheetApp.getUi().alert('バージョン情報', message, SpreadsheetApp.getUi().ButtonSet.OK);
   } catch (error) {
-    Logger.log(message);
+    log('info', message);
   }
 }
 
@@ -93,42 +95,14 @@ function showVersion(): void {
  * Web アプリとしてデプロイする場合の GET リクエストハンドラ
  */
 function doGet(e: GoogleAppsScript.Events.DoGet): GoogleAppsScript.HTML.HtmlOutput {
-  log('info', 'doGet が呼び出されました', { parameters: e.parameter });
-
-  const html = `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <base target="_top">
-        <meta charset="utf-8">
-        <title>${config.appName}</title>
-      </head>
-      <body>
-        <h1>${config.appName}</h1>
-        <p>バージョン: ${config.version}</p>
-        <p>現在時刻: ${new Date().toLocaleString('ja-JP')}</p>
-      </body>
-    </html>
-  `;
-
-  return HtmlService.createHtmlOutput(html);
+  return handleDoGet(e);
 }
 
 /**
  * Web アプリとしてデプロイする場合の POST リクエストハンドラ
  */
 function doPost(e: GoogleAppsScript.Events.DoPost): GoogleAppsScript.Content.TextOutput {
-  log('info', 'doPost が呼び出されました', { postData: e.postData });
-
-  const response = {
-    status: 'success',
-    message: 'リクエストを受信しました',
-    timestamp: new Date().toISOString(),
-  };
-
-  return ContentService
-    .createTextOutput(JSON.stringify(response))
-    .setMimeType(ContentService.MimeType.JSON);
+  return handleDoPost(e);
 }
 
 /**
@@ -136,8 +110,7 @@ function doPost(e: GoogleAppsScript.Events.DoPost): GoogleAppsScript.Content.Tex
  * トリガーは手動で設定する必要があります
  */
 function scheduledFunction(): void {
-  log('info', '定期実行関数が実行されました');
-  // 定期的に実行したい処理をここに記述
+  handleScheduledFunction();
 }
 
 // グローバルオブジェクトへの登録

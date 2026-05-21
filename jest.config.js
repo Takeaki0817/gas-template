@@ -31,7 +31,8 @@ module.exports = {
   collectCoverageFrom: [
     'src/**/*.ts',
     '!src/**/*.d.ts',
-    '!src/main.ts',  // エントリーポイントは除外
+    '!src/main.ts',         // エントリーポイントは除外
+    '!src/handlers/**/*.ts', // GASエントリポイントのhandlersは除外
   ],
 
   // カバレッジ出力先

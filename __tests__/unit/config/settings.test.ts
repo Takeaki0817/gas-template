@@ -61,6 +61,22 @@ describe('Settings Module', () => {
       expect(result).toBe('');
     });
 
+    it('missing keys return an empty string when no default is provided', () => {
+      const result = getEnvVar('ABSENT_KEY');
+
+      expect(result).toBe('');
+    });
+
+    it('returns stored string values for type-like coercion cases', () => {
+      PropertiesService.getScriptProperties().setProperties({
+        NUMERIC: '123',
+        BOOLEAN: 'false',
+      });
+
+      expect(getEnvVar('NUMERIC')).toBe('123');
+      expect(getEnvVar('BOOLEAN')).toBe('false');
+    });
+
     it('エラーが発生した場合、デフォルト値を返す', () => {
       const mockGetProperty = jest.fn(() => {
         throw new Error('PropertiesService error');
@@ -89,6 +105,15 @@ describe('Settings Module', () => {
       setEnvVar('TEST_KEY', 'test_value');
 
       expect(mockSetProperty).toHaveBeenCalledWith('TEST_KEY', 'test_value');
+    });
+
+    it('setEnvVar overwrites existing values', () => {
+      const properties = PropertiesService.getScriptProperties();
+
+      setEnvVar('OVERWRITE_KEY', 'first');
+      setEnvVar('OVERWRITE_KEY', 'second');
+
+      expect(properties.getProperty('OVERWRITE_KEY')).toBe('second');
     });
 
     it('エラーが発生しても例外をスローしない', () => {

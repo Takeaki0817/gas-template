@@ -22,4 +22,4 @@ export interface AppConfig {
 }
 
 // ログレベルの型
-export type LogLevel = 'info' | 'warn' | 'error';
+export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
