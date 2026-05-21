@@ -5,6 +5,10 @@
 Google Apps Script development template using TypeScript + clasp + Jest + esbuild + Docker.
 Copy this template to create new GAS projects.
 
+> ⚠️ **直接編集禁止**: This template (and any project derived from it) is managed via GitHub. Do NOT edit code in the Apps Script Web editor — changes will be overwritten by the next `npm run push`. Always edit under `src/` locally and deploy via `npm run push`.
+>
+> **For template users**: When cloning this repo to start a new project, see the "テンプレートとして使う場合の書き換え箇所" section in README.md for the list of files to rewrite (`package.json`, `README.md`, `src/config/settings.ts`, `.clasp.json`, etc.).
+
 ## Commands
 
 ```bash

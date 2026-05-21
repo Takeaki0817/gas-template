@@ -9,6 +9,54 @@ TypeScript + clasp + Jest + Docker による、モダンな Google Apps Script �
 
 ---
 
+## ⚠️ 直接編集禁止
+
+このテンプレートから派生させたプロジェクトは **GitHub リポジトリで管理する前提**です。Apps Script Web エディタで直接コードを編集しないでください。次回 `npm run push` で上書きされて変更が失われます。
+
+変更は必ずローカルの `src/` で行い、`npm run build && npx clasp push`（または `npm run push`）でデプロイしてください。
+
+---
+
+## テンプレートとして使う場合の書き換え箇所
+
+このリポジトリを clone して新しい GAS プロジェクトを作る場合、以下を新プロジェクト向けに書き換えてください。
+
+### 必須
+
+| ファイル | 書き換える箇所 |
+|---|---|
+| `package.json` | `name` / `description` / `author` / `keywords` |
+| `README.md` | 1 行目のタイトル、リポジトリ URL（`gh repo create` で生成される URL）、プロジェクト固有説明、この「直接編集禁止」より上のセクション全て |
+| `src/config/settings.ts` | `appName` / `version` / `environment` |
+| `.clasp.json`（新規作成） | `npx clasp create ...` で生成、または既存 GAS の `scriptId` を設定 |
+| `LICENSE` / `package.json` の `license` | MIT を引き継がない場合は変更 |
+
+### 必要に応じて
+
+| ファイル | 書き換える箇所 |
+|---|---|
+| `appsscript.json` | `timeZone`（Asia/Tokyo 以外）、`oauthScopes`（使う API に応じ追加・削除） |
+| `CLAUDE.md` | Project Overview / Architecture / Commands のプロジェクト固有部分 |
+| `.env.example` | そのプロジェクトで使う Script Properties キー一覧に差し替え |
+| `.github/workflows/ci.yml` | デプロイジョブ追加（`CLASP_CREDENTIALS` シークレットを別途登録） |
+| `.claude/skills/gas-best-practices/SKILL.md` | プロジェクト固有のアンチパターンを追記 |
+
+### 引き継いで使うもの（書き換え不要）
+
+- `src/lib/` 配下のヘルパー（errors / logger / secrets / db / long-running / utils）
+- `src/handlers/` のスケルトン（処理を追加するだけ）
+- `__tests__/mocks/gas-mocks.ts` の GAS API モック
+- `.claude/rules/*.md`（gas-source.md / testing.md）
+- `eslint.config.js` / `.prettierrc.json` / `jest.config.js` / `tsconfig.json`
+- `skills-lock.json`（外部スキルの固定バージョン）
+
+### このテンプレート自体への変更（PR を本リポジトリへ送る場合）
+
+- このリポジトリ（`Takeaki0817/gas-template`）に直接 PR を送る場合のみ、上記の書き換えは不要です
+- 自分用にフォークして使う場合は、最初にフォーク先のリポジトリ URL に置き換えてください
+
+---
+
 ## 目次
 
 - [3 分でスタート](#3-分でスタート)
