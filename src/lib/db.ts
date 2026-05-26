@@ -75,7 +75,9 @@ export function getColumns(
   );
 }
 
-function resultSetToRows(resultSet: GoogleAppsScript.JDBC.JdbcResultSet): Record<string, unknown>[] {
+const resultSetToRows = (
+  resultSet: GoogleAppsScript.JDBC.JdbcResultSet
+): Record<string, unknown>[] => {
   const rows: Record<string, unknown>[] = [];
   const metaData = resultSet.getMetaData();
   const columnCount = metaData.getColumnCount();
@@ -90,17 +92,16 @@ function resultSetToRows(resultSet: GoogleAppsScript.JDBC.JdbcResultSet): Record
   }
 
   return rows;
-}
+};
 
-function asError(error: unknown): Error {
-  return error instanceof Error ? error : new Error(String(error));
-}
+const asError = (error: unknown): Error =>
+  error instanceof Error ? error : new Error(String(error));
 
 interface Closeable {
   close: () => void;
 }
 
-function safeClose(closeable: Closeable | undefined): void {
+const safeClose = (closeable: Closeable | undefined): void => {
   if (!closeable) {
     return;
   }
@@ -109,4 +110,4 @@ function safeClose(closeable: Closeable | undefined): void {
   } catch (_error) {
     // best-effort: close 失敗は無視
   }
-}
+};

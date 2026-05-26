@@ -13,74 +13,29 @@ export interface LogEntry {
   context?: unknown;
 }
 
+export interface Logger {
+  log(level: LogLevel | keyof typeof LogLevel | string, message: string, context?: unknown): void;
+  debug(message: string, context?: unknown): void;
+  info(message: string, context?: unknown): void;
+  warn(message: string, context?: unknown): void;
+  error(message: string, context?: unknown): void;
+}
+
 const DEFAULT_LEVEL = LogLevel.INFO;
 const REDACTED = '***';
 const SECRET_KEY_PATTERN =
   /(password|passwd|token|secret|api[_-]?key|authorization|auth|credential|private[_-]?key|access[_-]?key|client[_-]?secret|bearer)/i;
 
-export class Logger {
-  private readonly name: string;
-
-  constructor(name = 'app') {
-    this.name = name;
-  }
-
-  log(level: LogLevel | keyof typeof LogLevel | string, message: string, context?: unknown): void {
-    const normalizedLevel = normalizeLevel(level);
-    if (normalizedLevel < getConfiguredLevel()) {
-      return;
-    }
-
-    const entry: LogEntry = {
-      timestamp: new Date().toISOString(),
-      level: LogLevel[normalizedLevel] as keyof typeof LogLevel,
-      name: this.name,
-      message,
-      context: context === undefined ? undefined : redactSecrets(context),
-    };
-
-    try {
-      globalThis.Logger.log(JSON.stringify(entry));
-    } catch (_error) {
-      // Logger 経由の出力失敗はサイレントに無視（テスト環境などで Logger が未定義の場合に備える）
-    }
-    appendToSheet(entry);
-  }
-
-  debug(message: string, context?: unknown): void {
-    this.log(LogLevel.DEBUG, message, context);
-  }
-
-  info(message: string, context?: unknown): void {
-    this.log(LogLevel.INFO, message, context);
-  }
-
-  warn(message: string, context?: unknown): void {
-    this.log(LogLevel.WARN, message, context);
-  }
-
-  error(message: string, context?: unknown): void {
-    this.log(LogLevel.ERROR, message, context);
-  }
-}
-
-export function getLogger(name?: string): Logger {
-  return new Logger(name);
-}
-
-const logger = getLogger();
-export default logger;
-
-function getConfiguredLevel(): LogLevel {
+const getConfiguredLevel = (): LogLevel => {
   try {
     const configured = PropertiesService.getScriptProperties().getProperty('LOG_LEVEL');
     return configured ? normalizeLevel(configured) : DEFAULT_LEVEL;
   } catch (_error) {
     return DEFAULT_LEVEL;
   }
-}
+};
 
-function appendToSheet(entry: LogEntry): void {
+const appendToSheet = (entry: LogEntry): void => {
   // スプレッドシート出力はベストエフォート。スタンドアロン実行や権限不足では失敗するため、握りつぶす。
   try {
     const sheetName = PropertiesService.getScriptProperties().getProperty('LOG_SHEET_NAME');
@@ -103,9 +58,9 @@ function appendToSheet(entry: LogEntry): void {
   } catch (_error) {
     // sheet logging is best-effort
   }
-}
+};
 
-function normalizeLevel(level: LogLevel | keyof typeof LogLevel | string): LogLevel {
+const normalizeLevel = (level: LogLevel | keyof typeof LogLevel | string): LogLevel => {
   if (typeof level === 'number') {
     return level;
   }
@@ -116,13 +71,13 @@ function normalizeLevel(level: LogLevel | keyof typeof LogLevel | string): LogLe
   }
 
   return DEFAULT_LEVEL;
-}
+};
 
 /**
  * シークレット系のキー（password / token / api_key 等）の値を `***` に置換する。
- * オブジェクト・配列は再帰的にトラバースする。循環参照はそのまま値を返す。
+ * オブジェクト・配列は再帰的にトラバースする。循環参照は `[Circular]` に置換する。
  */
-function redactSecrets(value: unknown, seen: WeakSet<object> = new WeakSet()): unknown {
+const redactSecrets = (value: unknown, seen: WeakSet<object> = new WeakSet()): unknown => {
   if (value === null || value === undefined) {
     return value;
   }
@@ -154,12 +109,49 @@ function redactSecrets(value: unknown, seen: WeakSet<object> = new WeakSet()): u
     return result;
   }
   return value;
-}
+};
 
-function safeStringify(value: unknown): string {
+const safeStringify = (value: unknown): string => {
   try {
     return JSON.stringify(value);
   } catch (_error) {
     return '[Unserializable]';
   }
-}
+};
+
+export const createLogger = (name = 'app'): Logger => {
+  const log: Logger['log'] = (level, message, context) => {
+    const normalizedLevel = normalizeLevel(level);
+    if (normalizedLevel < getConfiguredLevel()) {
+      return;
+    }
+
+    const entry: LogEntry = {
+      timestamp: new Date().toISOString(),
+      level: LogLevel[normalizedLevel] as keyof typeof LogLevel,
+      name,
+      message,
+      context: context === undefined ? undefined : redactSecrets(context),
+    };
+
+    try {
+      globalThis.Logger.log(JSON.stringify(entry));
+    } catch (_error) {
+      // Logger 経由の出力失敗はサイレントに無視（テスト環境などで Logger が未定義の場合に備える）
+    }
+    appendToSheet(entry);
+  };
+
+  return {
+    log,
+    debug: (message, context) => log(LogLevel.DEBUG, message, context),
+    info: (message, context) => log(LogLevel.INFO, message, context),
+    warn: (message, context) => log(LogLevel.WARN, message, context),
+    error: (message, context) => log(LogLevel.ERROR, message, context),
+  };
+};
+
+export const getLogger = (name?: string): Logger => createLogger(name);
+
+const logger = getLogger();
+export default logger;

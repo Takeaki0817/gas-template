@@ -4,82 +4,66 @@ type Transformer<T> = (value: string) => T;
 
 const cache = new Map<string, string | null>();
 
-/**
- * Cached access to script-level secrets stored in PropertiesService.
- */
-export class Secrets {
-  /**
-   * Fetch a required secret from Script Properties.
-   *
-   * Values are cached in memory for the current Apps Script execution so repeated
-   * calls for the same key do not re-fetch from PropertiesService.
-   *
-   * @param key Script property key.
-   * @param transformer Optional converter from raw string to the requested type.
-   * @throws MissingSecretError when the property is absent or empty.
-   */
-  static getRequired<T = string>(key: string, transformer?: Transformer<T>): T {
-    const value = getCachedSecret(key);
-
-    if (value === null || value === '') {
-      throw new MissingSecretError(key);
-    }
-
-    return transformValue(value, transformer);
-  }
-
-  /**
-   * Fetch an optional secret from Script Properties.
-   *
-   * Missing or empty values return the provided default value. Present values are
-   * cached for the current execution.
-   *
-   * @param key Script property key.
-   * @param defaultValue Value returned when the property is absent or empty.
-   * @param transformer Optional converter from raw string to the requested type.
-   */
-  static getOptional<T = string>(key: string, defaultValue: T, transformer?: Transformer<T>): T {
-    const value = getCachedSecret(key);
-
-    if (value === null || value === '') {
-      return defaultValue;
-    }
-
-    return transformValue(value, transformer);
-  }
-
-  /**
-   * Validate that every required key exists before running startup work.
-   *
-   * @param keys Script property keys that must be present.
-   * @throws MissingSecretError for the first missing key.
-   */
-  static validateAll(keys: string[]): void {
-    keys.forEach((key) => {
-      Secrets.getRequired(key);
-    });
-  }
-
-  /**
-   * Clear the execution-local cache. Primarily useful for tests.
-   */
-  static clearCache(): void {
-    cache.clear();
-  }
-}
-
-export const secrets = Secrets;
-
-function getCachedSecret(key: string): string | null {
+const getCachedSecret = (key: string): string | null => {
   if (cache.has(key)) {
     return cache.get(key) ?? null;
   }
-
   const value = PropertiesService.getScriptProperties().getProperty(key);
   cache.set(key, value);
   return value;
+};
+
+/**
+ * 必須シークレットを Script Properties から取得する。
+ *
+ * 値は Apps Script の実行ごとにメモリキャッシュされ、同一キーへの繰り返し参照は
+ * PropertiesService を再フェッチしない。
+ *
+ * @throws {MissingSecretError} プロパティが未設定または空文字の場合。
+ */
+export function getRequiredSecret(key: string): string;
+export function getRequiredSecret<T>(key: string, transformer: Transformer<T>): T;
+export function getRequiredSecret<T>(key: string, transformer?: Transformer<T>): T | string {
+  const value = getCachedSecret(key);
+  if (value === null || value === '') {
+    throw new MissingSecretError(key);
+  }
+  return transformer ? transformer(value) : value;
 }
 
-function transformValue<T>(value: string, transformer?: Transformer<T>): T {
-  return transformer ? transformer(value) : (value as T);
+/**
+ * 任意シークレットを Script Properties から取得する。
+ *
+ * 未設定または空文字の場合は `defaultValue` を返す。値は実行内でキャッシュされる。
+ */
+export function getOptionalSecret(key: string, defaultValue: string): string;
+export function getOptionalSecret<T>(key: string, defaultValue: T, transformer: Transformer<T>): T;
+export function getOptionalSecret<T>(
+  key: string,
+  defaultValue: T,
+  transformer?: Transformer<T>
+): T {
+  const value = getCachedSecret(key);
+  if (value === null || value === '') {
+    return defaultValue;
+  }
+  return transformer ? transformer(value) : (value as unknown as T);
 }
+
+/**
+ * 起動時に必須キー一式の存在を検証する。
+ *
+ * @throws {MissingSecretError} 最初に欠けているキー。
+ */
+export const validateAllSecrets = (keys: string[]): void => {
+  keys.forEach((key) => {
+    getRequiredSecret(key);
+  });
+};
+
+/**
+ * 実行内シークレットキャッシュをクリアする。主にテスト用途。
+ */
+export const clearSecretsCache = (): void => {
+  cache.clear();
+};

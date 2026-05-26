@@ -65,14 +65,12 @@ export function runWithContinuation<T>(
   }
 }
 
-function getStateKey(jobName: string): string {
-  return `CONTINUATION_STATE_${jobName}`;
-}
+const getStateKey = (jobName: string): string => `CONTINUATION_STATE_${jobName}`;
 
-function readState<T>(
+const readState = <T>(
   properties: GoogleAppsScript.Properties.Properties,
   stateKey: string
-): ContinuationState<T> | null {
+): ContinuationState<T> | null => {
   const serialized = properties.getProperty(stateKey);
   if (!serialized) {
     return null;
@@ -84,13 +82,13 @@ function readState<T>(
     properties.deleteProperty(stateKey);
     return null;
   }
-}
+};
 
-function saveState<T>(
+const saveState = <T>(
   properties: GoogleAppsScript.Properties.Properties,
   stateKey: string,
   state: ContinuationState<T>
-): void {
+): void => {
   let serialized: string;
   try {
     serialized = JSON.stringify(state);
@@ -100,19 +98,19 @@ function saveState<T>(
     );
   }
   properties.setProperty(stateKey, serialized);
-}
+};
 
-function scheduleContinuation(triggerFunctionName: string, continueAfterMs: number): void {
+const scheduleContinuation = (triggerFunctionName: string, continueAfterMs: number): void => {
   // 連続中断時に同名トリガーが累積しないよう、既存トリガーをクリーンアップしてから新規作成する。
   // 1 回だけ実行されるワンショットトリガー。完了時にも deleteContinuationTriggers で掃除する。
   deleteContinuationTriggers(triggerFunctionName);
   ScriptApp.newTrigger(triggerFunctionName).timeBased().after(continueAfterMs).create();
-}
+};
 
-function deleteContinuationTriggers(triggerFunctionName: string): void {
+const deleteContinuationTriggers = (triggerFunctionName: string): void => {
   ScriptApp.getProjectTriggers()
     .filter((trigger) => trigger.getHandlerFunction() === triggerFunctionName)
     .forEach((trigger) => {
       ScriptApp.deleteTrigger(trigger);
     });
-}
+};

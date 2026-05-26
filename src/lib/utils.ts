@@ -64,14 +64,12 @@ export function deepCopy<T>(obj: T): T {
  */
 export function generateRandomString(length: number): string {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let result = '';
-  for (let i = 0; i < length; i++) {
-    result += characters.charAt(Math.floor(Math.random() * characters.length));
-  }
-  return result;
+  return Array.from({ length }, () =>
+    characters.charAt(Math.floor(Math.random() * characters.length))
+  ).join('');
 }
 
-function toLoggerLevel(level: LogLevel): LoggerLevel {
+const toLoggerLevel = (level: LogLevel): LoggerLevel => {
   switch (level) {
     case 'debug':
       return LoggerLevel.DEBUG;
@@ -83,4 +81,4 @@ function toLoggerLevel(level: LogLevel): LoggerLevel {
     default:
       return LoggerLevel.INFO;
   }
-}
+};

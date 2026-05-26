@@ -3,6 +3,9 @@ const { GasPlugin } = require('esbuild-gas-plugin');
 
 const isWatch = process.argv.includes('--watch');
 
+// ビルド日時を JST で生成
+const buildDateTime = new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' });
+
 const buildOptions = {
   entryPoints: ['src/main.ts'],
   bundle: true,
@@ -10,6 +13,17 @@ const buildOptions = {
   plugins: [GasPlugin],
   logLevel: 'info',
   minify: false, // GASのデバッグを容易にするためminifyは無効化
+  banner: {
+    js: `/**
+ * ⚠️ 警告: このファイルは自動生成されています
+ *
+ * 直接このファイルを編集しないでください。
+ * 編集する場合は、以下のリポジトリを利用してください:
+ * https://github.com/TOMAP-Inc/gas-template
+ *
+ * ビルド日時: ${buildDateTime} JST
+ */`,
+  },
 };
 
 if (isWatch) {

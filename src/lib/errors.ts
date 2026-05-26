@@ -67,7 +67,7 @@ export class RetriableError extends AppError {
   }
 }
 
-function serializeCause(cause: Error | undefined): SerializedAppError | undefined {
+const serializeCause = (cause: Error | undefined): SerializedAppError | undefined => {
   if (!cause) {
     return undefined;
   }
@@ -82,9 +82,9 @@ function serializeCause(cause: Error | undefined): SerializedAppError | undefine
     code: 'UNKNOWN_ERROR',
     stack: cause.stack,
   };
-}
+};
 
-function toJsonSafe<T>(value: T): T | undefined {
+const toJsonSafe = <T>(value: T): T | undefined => {
   if (value === undefined) {
     return undefined;
   }
@@ -94,4 +94,4 @@ function toJsonSafe<T>(value: T): T | undefined {
       typeof nestedValue === 'bigint' ? nestedValue.toString() : nestedValue
     )
   ) as T;
-}
+};
