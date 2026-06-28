@@ -12,6 +12,18 @@
       "sourceType": "github",
       "skillPath": ".claude/skills/typescript-best-practices/SKILL.md",
       "computedHash": "9866bb48d92a951feafb77f6f48ea39b42c6c1e901788c916d4aad40f60db008"
+    },
+    "find-docs": {
+      "source": "local/.agents-skills",
+      "sourceType": "local",
+      "skillPath": "skills/find-docs/SKILL.md",
+      "computedHash": "fe18b48c6495751edd8b59b3d82ff36d5b5121310dedfce78b037bc796585a6b"
+    },
+    "nodejs-backend-patterns": {
+      "source": "local/.agents-skills",
+      "sourceType": "local",
+      "skillPath": "skills/nodejs-backend-patterns/SKILL.md",
+      "computedHash": "d52e1150accdc27e916f0962c9ba0872fcbe8a7d849d905dcc795c0f9d05aeae"
     }
   }
 }
