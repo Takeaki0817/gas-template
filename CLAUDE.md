@@ -14,7 +14,7 @@ Copy this template to create new GAS projects.
 ```bash
 npm run build           # src/*.ts -> dist/Code.js (esbuild)
 npm run push            # build + clasp push
-npm run deploy          # build + push + clasp deploy
+npm run deploy          # build + push + clasp create-deployment
 npm test                # Jest tests
 npm run test:coverage   # 70% threshold
 npm run docker:dev      # Containerized dev (file watch)

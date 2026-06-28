@@ -75,7 +75,7 @@ const rows = executeQuery(conn, 'SELECT * FROM users WHERE id = ?', [1]);
 ## Secrets Mocks
 
 `PropertiesService.getScriptProperties().setProperty(key, value)` sets values in the in-memory store.
-Always call `Secrets.clearCache()` in `beforeEach` to reset the execution-local cache.
+Always call `clearSecretsCache()` from `src/lib/secrets` in `beforeEach` to reset the execution-local cache.
 
 ## Logger Mocks
 

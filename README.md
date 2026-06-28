@@ -1,7 +1,7 @@
 # Google Apps Script プロジェクトテンプレート
 
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.3+-blue.svg)](https://www.typescriptlang.org/)
-[![Jest](https://img.shields.io/badge/Jest-29.7+-green.svg)](https://jestjs.io/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-6.0+-blue.svg)](https://www.typescriptlang.org/)
+[![Jest](https://img.shields.io/badge/Jest-30+-green.svg)](https://jestjs.io/)
 [![Docker](https://img.shields.io/badge/Docker-ready-blue.svg)](https://www.docker.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -96,7 +96,7 @@ npm install
 
 # 3. 認証 & プロジェクト作成
 npx clasp login
-npx clasp create --title "My Project" --type standalone --rootDir ./dist
+npx clasp create-script --title "My Project" --type standalone --rootDir ./dist
 ```
 
 ✅ 続きは [開発フロー](#開発フロー) と [コマンド一覧](#コマンド一覧) へ。
@@ -149,9 +149,9 @@ src/*.ts → esbuild（esbuild-gas-plugin） → dist/Code.js → clasp push →
 
 | 技術 | 役割 | 学習リソース |
 |------|------|------|
-| **TypeScript** 5.3+ | 型安全な開発、ES2019 / V8 互換 | [公式ハンドブック（日本語）](https://www.typescriptlang.org/ja/docs/) |
-| **clasp** 2.4+ | ローカルと GAS の同期・認証 | [clasp 公式](https://developers.google.com/apps-script/guides/clasp) |
-| **Jest** 29.7+ | ユニットテスト + カバレッジ | [Jest 公式（日本語）](https://jestjs.io/ja/) |
+| **TypeScript** 6.0+ | 型安全な開発、ES2019 / V8 互換 | [公式ハンドブック（日本語）](https://www.typescriptlang.org/ja/docs/) |
+| **clasp** 3.3+ | ローカルと GAS の同期・認証 | [clasp 公式（GitHub）](https://github.com/google/clasp) |
+| **Jest** 30+ | ユニットテスト + カバレッジ | [Jest 公式（日本語）](https://jestjs.io/ja/) |
 | **esbuild** | 高速バンドラ（src → dist/Code.js） | [esbuild 公式](https://esbuild.github.io/) |
 | **Docker**（任意） | チーム間の環境統一 | [Docker 公式](https://www.docker.com/) |
 | **ESLint / Prettier** | 静的解析・フォーマット | — |
@@ -231,19 +231,19 @@ GAS では `.env` ファイルではなく **Script Properties** に設定値を
 ### コード例
 
 ```typescript
-import { Secrets } from './lib/secrets';
+import { getRequiredSecret, getOptionalSecret, validateAllSecrets } from './lib/secrets';
 
 // 必須キー（なければ MissingSecretError）
-const dbUser = Secrets.getRequired('DB_USER');
+const dbUser = getRequiredSecret('DB_USER');
 
 // 型変換付き
-const apiTimeout = Secrets.getRequired('API_TIMEOUT', Number); // => number
+const apiTimeout = getRequiredSecret('API_TIMEOUT', Number); // => number
 
 // オプショナル（なければデフォルト値）
-const logLevel = Secrets.getOptional('LOG_LEVEL', 'info');
+const logLevel = getOptionalSecret('LOG_LEVEL', 'info');
 
 // 起動時に一括バリデーション（最初に欠けているキーで MissingSecretError）
-Secrets.validateAll(['DB_USER', 'DB_PASSWORD', 'DB_NAME']);
+validateAllSecrets(['DB_USER', 'DB_PASSWORD', 'DB_NAME']);
 ```
 
 ---
@@ -257,9 +257,9 @@ import { withConnection, executeQuery, listTables } from './lib/db';
 import { Secrets } from './lib/secrets';
 
 const config = {
-  url: Secrets.getRequired('CONNECTION_NAME'),
-  user: Secrets.getRequired('DB_USER'),
-  password: Secrets.getRequired('DB_PASSWORD'),
+  url: getRequiredSecret('CONNECTION_NAME'),
+  user: getRequiredSecret('DB_USER'),
+  password: getRequiredSecret('DB_PASSWORD'),
 };
 
 // 接続を開いてクエリを実行し、自動でクローズ
@@ -269,7 +269,7 @@ const rows = withConnection(config, (conn) =>
 
 // テーブル一覧
 const tables = withConnection(config, (conn) =>
-  listTables(conn, Secrets.getRequired('DB_NAME'))
+  listTables(conn, getRequiredSecret('DB_NAME'))
 );
 ```
 
@@ -364,7 +364,7 @@ logger.info('login', { userId: 'u1', password: 'p@ss', token: 'abc' });
 
 GAS API（`PropertiesService`、`Jdbc`、`SpreadsheetApp`、`UrlFetchApp` 等）は `__tests__/mocks/gas-mocks.ts` でモック化し、`__tests__/setup.ts` でグローバル登録されます。テストは Node.js 環境で動きますが、GAS API が透過的に使えます。
 
-各テストの `beforeEach` ではモック状態をリセットします（基本は `jest.clearAllMocks()` + `Secrets.clearCache()`）。
+各テストの `beforeEach` ではモック状態をリセットします（基本は `jest.clearAllMocks()` + `clearSecretsCache()`）。
 
 ### カバレッジ目標
 
@@ -409,7 +409,7 @@ npm run test:watch   # ファイル変更でテスト自動実行
 | `npm run build` | `src/` を `dist/Code.js` にバンドル |
 | `npm run watch` | ビルドのファイル監視モード |
 | `npm run push` | ビルド + clasp push |
-| `npm run deploy` | ビルド + push + clasp deploy |
+| `npm run deploy` | ビルド + push + clasp create-deployment |
 | `npm run open` | GAS エディタをブラウザで開く |
 
 ### テスト・品質
@@ -639,7 +639,7 @@ Apps Script API: https://script.google.com/home/usersettings
 **新規作成**:
 
 ```bash
-npx clasp create --title "My GAS Project" --type standalone --rootDir ./dist
+npx clasp create-script --title "My GAS Project" --type standalone --rootDir ./dist
 ```
 
 利用可能な `--type`: `standalone` / `sheets` / `docs` / `slides` / `forms`

@@ -30,14 +30,14 @@ Add new modules under `src/lib/` or create feature directories under `src/`.
 
 ## Secrets (PropertiesService)
 
-Use `Secrets` from `src/lib/secrets.ts` — values are cached per execution:
+Use functions from `src/lib/secrets.ts` — values are cached per execution:
 
 ```typescript
-import { Secrets } from './lib/secrets';
-const apiKey = Secrets.getRequired('API_KEY');
-const timeout = Secrets.getRequired('TIMEOUT', Number);
-const env = Secrets.getOptional('APP_ENV', 'development');
-Secrets.validateAll(['API_KEY', 'DB_USER']); // throws MissingSecretError on first miss
+import { getRequiredSecret, getOptionalSecret, validateAllSecrets } from './lib/secrets';
+const apiKey = getRequiredSecret('API_KEY');
+const timeout = getRequiredSecret('TIMEOUT', Number);
+const env = getOptionalSecret('APP_ENV', 'development');
+validateAllSecrets(['API_KEY', 'DB_USER']); // throws MissingSecretError on first miss
 ```
 
 ## Error Handling (AppError)
