@@ -56,14 +56,15 @@ module.exports = {
     }
   },
 
-  // ts-jestの設定
-  globals: {
-    'ts-jest': {
+  // ts-jestの設定（globals形式はv29.2以降deprecated → transformへ移行）
+  transform: {
+    '^.+\\.tsx?$': ['ts-jest', {
       tsconfig: {
         esModuleInterop: true,
         allowSyntheticDefaultImports: true,
+        types: ['node', 'jest', 'google-apps-script'],
       }
-    }
+    }]
   },
 
   // セットアップファイル（モックの初期化など）
