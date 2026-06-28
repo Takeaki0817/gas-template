@@ -157,6 +157,89 @@ describe('Logger', () => {
     });
   });
 
+  describe('ログレベルの解決', () => {
+    it('LOG_LEVEL が未設定なら DEFAULT (INFO) を採用し、DEBUG はフィルタされる', () => {
+      // LOG_LEVEL を設定しない（getConfiguredLevel の falsy 分岐を通す）
+      const logger = getLogger('default-level');
+
+      logger.debug('debug は出ない');
+      logger.info('info は出る');
+
+      expect(Logger.log).toHaveBeenCalledTimes(1);
+      expect(JSON.parse((Logger.log as jest.Mock).mock.calls[0][0])).toMatchObject({
+        level: 'INFO',
+        message: 'info は出る',
+      });
+    });
+
+    it('PropertiesService が LOG_LEVEL 取得で例外を投げても DEFAULT (INFO) で動作する', () => {
+      (PropertiesService.getScriptProperties as jest.Mock).mockImplementationOnce(() => {
+        throw new Error('properties unavailable');
+      });
+
+      const logger = getLogger('level-error');
+
+      // DEFAULT(INFO) にフォールバックするので info は出力される
+      expect(() => logger.info('still logs')).not.toThrow();
+      expect(Logger.log).toHaveBeenCalledTimes(1);
+    });
+
+    it('数値の LogLevel をそのまま渡しても解決できる（normalizeLevel の number 分岐）', () => {
+      PropertiesService.getScriptProperties().setProperty('LOG_LEVEL', 'DEBUG');
+      const logger = getLogger('numeric');
+
+      logger.log(LogLevel.ERROR, 'numeric level');
+
+      const entry = JSON.parse((Logger.log as jest.Mock).mock.calls[0][0]);
+      expect(entry.level).toBe('ERROR');
+    });
+
+    it('未知の文字列レベルを渡すと DEFAULT (INFO) として扱う', () => {
+      PropertiesService.getScriptProperties().setProperty('LOG_LEVEL', 'DEBUG');
+      const logger = getLogger('unknown-level');
+
+      logger.log('TRACE', 'unknown level message');
+
+      const entry = JSON.parse((Logger.log as jest.Mock).mock.calls[0][0]);
+      expect(entry.level).toBe('INFO');
+    });
+  });
+
+  describe('シート出力の条件分岐', () => {
+    it('context が undefined の場合、シートには空文字が書き込まれる', () => {
+      PropertiesService.getScriptProperties().setProperties({
+        LOG_LEVEL: 'DEBUG',
+        LOG_SHEET_NAME: 'Logs',
+      });
+      const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+
+      // context を渡さずにログ出力（safeStringify を通らず空文字になる分岐）
+      getLogger('no-context').info('message without context');
+
+      const sheet = spreadsheet.getSheetByName('Logs');
+      // context 列（5 番目）が空文字であることを確認
+      expect(sheet?.appendRow).toHaveBeenCalledWith([
+        expect.any(String),
+        'INFO',
+        'no-context',
+        'message without context',
+        '',
+      ]);
+    });
+
+    it('LOG_SHEET_NAME はあるが SpreadsheetApp.getActiveSpreadsheet が null を返す場合は何もしない', () => {
+      PropertiesService.getScriptProperties().setProperties({
+        LOG_LEVEL: 'DEBUG',
+        LOG_SHEET_NAME: 'Logs',
+      });
+      (SpreadsheetApp.getActiveSpreadsheet as jest.Mock).mockReturnValueOnce(null);
+
+      expect(() => getLogger('null-spreadsheet').info('no active spreadsheet')).not.toThrow();
+      // Logger 出力自体は成功している
+      expect(Logger.log).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('GAS API のフォールバック', () => {
     it('SpreadsheetApp が例外を投げてもログ出力は失敗しない', () => {
       PropertiesService.getScriptProperties().setProperties({

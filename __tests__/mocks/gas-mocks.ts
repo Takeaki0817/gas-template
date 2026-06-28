@@ -214,20 +214,36 @@ const createSpreadsheetMock = () => {
   const sheet1 = createSheetMock('Sheet1');
   sheets.set('Sheet1', sheet1);
 
-  return {
+  const getSheetByNameImpl = (name: string) => sheets.get(name) ?? null;
+  const insertSheetImpl = (name: string) => {
+    const sheet = createSheetMock(name);
+    sheets.set(name, sheet);
+    return sheet;
+  };
+
+  const mock = {
     getActiveSheet: jest.fn(() => sheet1),
-    getSheetByName: jest.fn((name: string) => sheets.get(name) ?? null),
-    insertSheet: jest.fn((name: string) => {
-      const sheet = createSheetMock(name);
-      sheets.set(name, sheet);
-      return sheet;
-    }),
+    getSheetByName: jest.fn(getSheetByNameImpl),
+    insertSheet: jest.fn(insertSheetImpl),
     getSheets: jest.fn(() => Array.from(sheets.values())),
     getName: jest.fn(() => 'Test Spreadsheet'),
     getId: jest.fn(() => 'test-spreadsheet-id'),
     getUrl: jest.fn(() => 'https://docs.google.com/spreadsheets/d/test-id/edit'),
     __sheets: sheets,
+    // テスト間でシート状態とモック実装を初期化する。
+    // 個別テストが getSheetByName / insertSheet に mockReturnValue 等で
+    // 差し込んだ実装を、デフォルトのクロージャ実装へ戻す。
+    __reset: () => {
+      sheets.clear();
+      sheets.set('Sheet1', sheet1);
+      mock.getSheetByName.mockReset();
+      mock.getSheetByName.mockImplementation(getSheetByNameImpl);
+      mock.insertSheet.mockReset();
+      mock.insertSheet.mockImplementation(insertSheetImpl);
+    },
   };
+
+  return mock;
 };
 
 const activeSpreadsheet = createSpreadsheetMock();
@@ -402,10 +418,22 @@ export function resetGasMocks(): void {
   triggerCounter = 0;
   Logger.clear();
   jest.clearAllMocks();
+  // mockReset() でデフォルト実装を再設定する前に once キュー
+  // （mockImplementationOnce / mockReturnValueOnce）をクリアする。
+  // jest.clearAllMocks() は呼び出し履歴のみクリアし once キューは残るため、
+  // テスト内で設定した一度きりのモックが後続テストへ漏れるのを防ぐ。
+  PropertiesService.getScriptProperties.mockReset();
+  PropertiesService.getUserProperties.mockReset();
+  PropertiesService.getDocumentProperties.mockReset();
+  SpreadsheetApp.getActiveSpreadsheet.mockReset();
+  Jdbc.getCloudSqlConnection.mockReset();
+  ScriptApp.getProjectTriggers.mockReset();
   PropertiesService.getScriptProperties.mockImplementation(() => scriptProperties);
   PropertiesService.getUserProperties.mockImplementation(() => userProperties);
   PropertiesService.getDocumentProperties.mockImplementation(() => documentProperties);
   SpreadsheetApp.getActiveSpreadsheet.mockImplementation(() => activeSpreadsheet);
+  // シングルトン activeSpreadsheet のシート状態・モック実装を初期化（テスト間汚染防止）
+  activeSpreadsheet.__reset();
   Jdbc.getCloudSqlConnection.mockImplementation((_url: string, _user: string, _password: string) =>
     createJdbcConnection()
   );

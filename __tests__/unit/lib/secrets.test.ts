@@ -65,4 +65,27 @@ describe('secrets', () => {
 
     expect(getOptionalSecret('RETRY_COUNT', 1, Number)).toBe(3);
   });
+
+  it('未設定キー（null）をキャッシュした後の再参照でも PropertiesService を再フェッチしない', () => {
+    const properties = PropertiesService.getScriptProperties();
+
+    // 1 回目: 未設定なので null がキャッシュされる
+    expect(getOptionalSecret('ABSENT', 'fallback')).toBe('fallback');
+    // 2 回目: キャッシュ済み null を引いても defaultValue を返す
+    expect(getOptionalSecret('ABSENT', 'fallback')).toBe('fallback');
+
+    // getProperty は最初の 1 回だけ呼ばれる（cache.has が true になり ?? null 分岐を通る）
+    expect(properties.getProperty).toHaveBeenCalledTimes(1);
+  });
+
+  it('キャッシュ済みの空文字キーは getRequiredSecret で MissingSecretError を投げる', () => {
+    const properties = PropertiesService.getScriptProperties();
+    properties.setProperty('CACHED_EMPTY', '');
+
+    // 1 回目: 空文字を取得して MissingSecretError、同時に空文字がキャッシュされる
+    expect(() => getRequiredSecret('CACHED_EMPTY')).toThrow(MissingSecretError);
+    // 2 回目: キャッシュ経由でも空文字を未設定として扱う
+    expect(() => getRequiredSecret('CACHED_EMPTY')).toThrow(MissingSecretError);
+    expect(properties.getProperty).toHaveBeenCalledTimes(1);
+  });
 });

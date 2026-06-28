@@ -62,6 +62,9 @@ module.exports = {
       tsconfig: {
         esModuleInterop: true,
         allowSyntheticDefaultImports: true,
+        // tslib にヘルパーを外出しし、各ファイルへインライン展開される
+        // __importDefault 等のトランスパイルヘルパーがカバレッジを歪めないようにする
+        importHelpers: true,
         types: ['node', 'jest', 'google-apps-script'],
       }
     }]
