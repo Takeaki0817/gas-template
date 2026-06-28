@@ -50,7 +50,6 @@ token.json
 # 外部スキル（skills-lock.json から `npx skills experimental_install` で復元）
 .claude/skills/typescript-best-practices
 .claude/skills/javascript-typescript-jest
-.agents/
 
 # Serena プロジェクトキャッシュ
 .serena/
