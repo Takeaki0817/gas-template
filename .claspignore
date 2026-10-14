@@ -1,0 +1,19 @@
+# ソースファイル（distのみpushする）
+src/**
+node_modules/**
+.git/**
+
+# 設定ファイル
+tsconfig.json
+esbuild.config.js
+package*.json
+.env*
+README.md
+.github/**
+
+# OS・エディタ固有ファイル
+.DS_Store
+.vscode/**
+.idea/**
+*.swp
+*.swo
